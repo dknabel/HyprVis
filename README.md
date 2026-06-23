@@ -1,57 +1,44 @@
 # HyprVis
 
-Interactive 3D mathematical surface visualizer. Browse 12 curated parametric surfaces with smooth morph transitions, real-time animation, and a minimal frosted-glass control panel.
+A real-time 3D mathematical surface visualizer built as a portfolio exploration of WebGL, parametric geometry, and clean interaction design.
+
+Twelve curated surfaces — from Möbius strips to Breather solitons — morph fluidly into one another via per-vertex interpolation. Each surface is defined as a pure parametric function `fn(u, v, t) → {x, y, z}` and animates continuously over time.
+
+**[Live demo →](https://github.com/dknabel/HyprVis)**
+
+---
+
+## What it demonstrates
+
+**WebGL / Three.js**
+Full imperative Three.js setup — no abstraction layer. Custom `BufferGeometry` built from parametric functions at 96×96 resolution, recomputed every frame. Phong shading with a hand-tuned directional light and ambient fill.
+
+**Smooth morphing**
+Preset transitions lerp between vertex position arrays over 800ms using a cubic ease-in-out curve. The morph snapshots current geometry at switch time so mid-transition switches blend cleanly from wherever the surface is.
+
+**React architecture**
+Three.js lifecycle lives in a single `useEffect([])` to avoid re-mounting the renderer on re-renders. Mutable animation state (rotation speed, wireframe, active preset) flows into the loop via a `stateRef` rather than triggering effect teardown. Clean cleanup: RAF cancellation, event listener removal, all Three.js resources disposed.
+
+**Parametric math**
+Twelve surfaces spanning classical differential geometry — minimal surfaces (Enneper), non-orientable topologies (Möbius, Klein Bottle, Roman Surface), soliton solutions (Breather), curve-extruded tubes (Trefoil via Frenet frame), and spherical harmonics. All animate via a time parameter with guards against numerical singularities.
+
+---
 
 ## Surfaces
 
-| # | Name | Character |
-|---|------|-----------|
-| 1 | Torus | Breathing donut with animated radius |
-| 2 | Enneper | Classical minimal saddle surface |
-| 3 | Möbius Strip | One-sided surface with a twist |
-| 4 | Trefoil | Tube extruded along a trefoil knot |
-| 5 | Roman Surface | Steiner's self-intersecting six-lobed form |
-| 6 | Seashell | Logarithmic spiral shell |
-| 7 | Sphere Harmonic | Deformed sphere with pulsing lobes |
-| 8 | Dini's Surface | Constant negative curvature spiral horn |
-| 9 | Klein Bottle | Closed surface with no inside or outside |
-| 10 | Lissajous | Overlapping sine waves forming a woven surface |
-| 11 | Breather | Sine-Gordon soliton with rippling folds |
-| 12 | Supertoroid | Superelliptic torus with animated exponent |
+Torus · Enneper · Möbius Strip · Trefoil · Roman Surface · Seashell · Sphere Harmonic · Dini's Surface · Klein Bottle · Lissajous · Breather · Supertoroid
 
-## Controls
-
-- **‹ / ›** or dot indicators — cycle presets
-- **Speed slider** — rotation speed from 0× to 2×
-- **Wireframe toggle** — switch between solid (Phong) and mesh
-- **Mouse drag** — orbit camera
-- **Scroll** — zoom
+---
 
 ## Stack
 
-- [React 19](https://react.dev) + [Vite](https://vitejs.dev)
-- [Three.js](https://threejs.org) — WebGL rendering (imperative, no fiber)
-- [Tailwind CSS v4](https://tailwindcss.com)
-- [Vitest](https://vitest.dev) — unit tests for all 12 surface functions
+React 19 · Vite · Three.js · Tailwind CSS v4 · Vitest
 
-## Local Development
+---
+
+## Run locally
 
 ```bash
 npm install
 npm run dev
 ```
-
-## Build
-
-```bash
-npm run build   # outputs to dist/
-npm run preview # preview the build locally
-```
-
-## Tests
-
-```bash
-npm test
-```
-
-37 tests covering all 12 parametric surface functions — verifying finite output across sample coordinates and crash-safety across time values.
