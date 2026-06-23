@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 const RESOLUTION = 96;
+const MORPH_DURATION = 800;
 
 function buildPositions(fn, t) {
   const count = (RESOLUTION + 1) * (RESOLUTION + 1);
@@ -10,9 +11,7 @@ function buildPositions(fn, t) {
   let i = 0;
   for (let row = 0; row <= RESOLUTION; row++) {
     for (let col = 0; col <= RESOLUTION; col++) {
-      const u = col / RESOLUTION;
-      const v = row / RESOLUTION;
-      const { x, y, z } = fn(u, v, t);
+      const { x, y, z } = fn(col / RESOLUTION, row / RESOLUTION, t);
       positions[i++] = x;
       positions[i++] = y;
       positions[i++] = z;
@@ -41,90 +40,82 @@ export default function Scene({ preset, rotationSpeed, wireframe }) {
 
   useEffect(() => {
     const mount = mountRef.current;
-    const width = mount.clientWidth;
-    const height = mount.clientHeight;
-
-    // Renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(width, height);
+    renderer.setSize(mount.clientWidth, mount.clientHeight);
     renderer.setClearColor(0x050505);
     mount.appendChild(renderer.domElement);
 
-    // Scene + Camera
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(60, width / height, 0.01, 100);
+    const camera = new THREE.PerspectiveCamera(
+      60, mount.clientWidth / mount.clientHeight, 0.01, 100
+    );
     camera.position.set(0, 0, 5);
 
-    // Lights
     const dirLight = new THREE.DirectionalLight(0xfff4e0, 2.5);
     dirLight.position.set(3, 5, 3);
-    scene.add(dirLight);
-    scene.add(new THREE.AmbientLight(0x222233, 1.5));
+    scene.add(dirLight, new THREE.AmbientLight(0x222233, 1.5));
 
-    // Controls
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
 
-    // Geometry
     const geo = new THREE.BufferGeometry();
     geo.setIndex(new THREE.BufferAttribute(buildIndices(), 1));
-    const posAttr = new THREE.BufferAttribute(
-      buildPositions(preset.fn, 0), 3
-    );
+    const posAttr = new THREE.BufferAttribute(buildPositions(preset.fn, 0), 3);
     geo.setAttribute('position', posAttr);
     geo.computeVertexNormals();
 
-    // Material
     const solidMat = new THREE.MeshPhongMaterial({
-      color: preset.color,
-      shininess: 60,
-      side: THREE.DoubleSide,
+      color: preset.color, shininess: 60, side: THREE.DoubleSide,
     });
     const wireMat = new THREE.MeshBasicMaterial({
-      color: preset.color,
-      wireframe: true,
-      side: THREE.DoubleSide,
+      color: preset.color, wireframe: true, side: THREE.DoubleSide,
     });
-
-    const mesh = new THREE.Mesh(geo, wireframe ? wireMat : solidMat);
+    const mesh = new THREE.Mesh(geo, solidMat);
     scene.add(mesh);
 
-    // Store mutable state in ref so the animation loop always reads fresh values
-    stateRef.current = { preset, rotationSpeed, wireframe, solidMat, wireMat };
+    stateRef.current = {
+      preset, rotationSpeed, wireframe,
+      solidMat, wireMat, posAttr,
+      morph: { from: null, target: null, start: null },
+    };
 
-    let t = 0;
-    let rafId;
+    let t = 0, rafId;
 
-    function animate() {
+    function animate(now) {
       rafId = requestAnimationFrame(animate);
       const s = stateRef.current;
+      const morph = s.morph;
       t += 0.005;
 
-      // Recompute positions from current fn + t
-      const pos = buildPositions(s.preset.fn, t);
-      posAttr.array.set(pos);
-      posAttr.needsUpdate = true;
+      if (morph.target) {
+        const progress = Math.min((now - morph.start) / MORPH_DURATION, 1);
+        const ease = progress < 0.5
+          ? 4 * progress ** 3
+          : 1 - (-2 * progress + 2) ** 3 / 2;
+        const arr = s.posAttr.array;
+        for (let i = 0; i < arr.length; i++) {
+          arr[i] = morph.from[i] + (morph.target[i] - morph.from[i]) * ease;
+        }
+        if (progress >= 1) { morph.from = null; morph.target = null; }
+      } else {
+        s.posAttr.array.set(buildPositions(s.preset.fn, t));
+      }
+
+      s.posAttr.needsUpdate = true;
       geo.computeVertexNormals();
-
-      // Auto-rotate
       mesh.rotation.y += 0.002 * s.rotationSpeed;
-
-      // Wireframe swap
       mesh.material = s.wireframe ? s.wireMat : s.solidMat;
-
       controls.update();
       renderer.render(scene, camera);
     }
-    animate();
+    animate(performance.now());
 
-    // Resize
     function onResize() {
-      const w = mount.clientWidth, h = mount.clientHeight;
-      camera.aspect = w / h;
+      camera.aspect = mount.clientWidth / mount.clientHeight;
       camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
+      renderer.setSize(mount.clientWidth, mount.clientHeight);
     }
     window.addEventListener('resize', onResize);
 
@@ -138,29 +129,23 @@ export default function Scene({ preset, rotationSpeed, wireframe }) {
       renderer.dispose();
       mount.removeChild(renderer.domElement);
     };
-  }, []); // runs once — preset/speed/wireframe changes handled via stateRef
+  }, []);
 
-  // Sync prop changes into the ref without restarting the loop
   useEffect(() => {
-    if (stateRef.current.solidMat) {
-      stateRef.current.solidMat.color.set(preset.color);
-      stateRef.current.wireMat.color.set(preset.color);
+    const s = stateRef.current;
+    if (!s.morph || !s.posAttr) return;
+    s.morph.from = new Float32Array(s.posAttr.array);
+    s.morph.target = buildPositions(preset.fn, 0);
+    s.morph.start = performance.now();
+    if (s.solidMat) {
+      s.solidMat.color.set(preset.color);
+      s.wireMat.color.set(preset.color);
     }
-    stateRef.current.preset = preset;
+    s.preset = preset;
   }, [preset]);
 
-  useEffect(() => {
-    stateRef.current.rotationSpeed = rotationSpeed;
-  }, [rotationSpeed]);
+  useEffect(() => { stateRef.current.rotationSpeed = rotationSpeed; }, [rotationSpeed]);
+  useEffect(() => { stateRef.current.wireframe = wireframe; }, [wireframe]);
 
-  useEffect(() => {
-    stateRef.current.wireframe = wireframe;
-  }, [wireframe]);
-
-  return (
-    <div
-      ref={mountRef}
-      style={{ width: '100vw', height: '100vh', display: 'block' }}
-    />
-  );
+  return <div ref={mountRef} style={{ width: '100vw', height: '100vh' }} />;
 }
