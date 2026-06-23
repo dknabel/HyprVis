@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import { describe, test, expect, vi } from 'vitest';
 import ControlPanel from '../ControlPanel.jsx';
 
@@ -23,13 +23,14 @@ const defaultProps = {
 describe('ControlPanel bottom bar', () => {
   test('preset name displays correctly for activeIndex 0', () => {
     render(<ControlPanel {...defaultProps} />);
-    expect(screen.getByText('TORUS')).toBeTruthy();
+    expect(screen.getAllByText('TORUS').length).toBeGreaterThan(0);
   });
 
   test('‹ calls onPresetChange with wrapped index (n-1)', () => {
     const onPresetChange = vi.fn();
     render(<ControlPanel {...defaultProps} activeIndex={0} onPresetChange={onPresetChange} />);
-    fireEvent.click(screen.getByRole('button', { name: /previous preset/i }));
+    const desktopBar = screen.getByTestId('desktop-bar');
+    fireEvent.click(within(desktopBar).getByRole('button', { name: /previous preset/i }));
     // (0 - 1 + 2) % 2 = 1
     expect(onPresetChange).toHaveBeenCalledWith(1);
   });
@@ -37,23 +38,26 @@ describe('ControlPanel bottom bar', () => {
   test('› calls onPresetChange with wrapped index (n+1)', () => {
     const onPresetChange = vi.fn();
     render(<ControlPanel {...defaultProps} activeIndex={1} onPresetChange={onPresetChange} />);
-    fireEvent.click(screen.getByRole('button', { name: /next preset/i }));
+    const desktopBar = screen.getByTestId('desktop-bar');
+    fireEvent.click(within(desktopBar).getByRole('button', { name: /next preset/i }));
     // (1 + 1) % 2 = 0
     expect(onPresetChange).toHaveBeenCalledWith(0);
   });
 
   test('active view mode pill has aria-pressed="true"', () => {
     render(<ControlPanel {...defaultProps} viewMode="wire" />);
-    const wireBtn = screen.getByRole('button', { name: /^WIRE$/i });
+    const desktopBar = screen.getByTestId('desktop-bar');
+    const wireBtn = within(desktopBar).getByRole('button', { name: /^WIRE$/i });
     expect(wireBtn.getAttribute('aria-pressed')).toBe('true');
-    const ovlBtn = screen.getByRole('button', { name: /^OVL$/i });
+    const ovlBtn = within(desktopBar).getByRole('button', { name: /^OVL$/i });
     expect(ovlBtn.getAttribute('aria-pressed')).toBe('false');
   });
 
   test('clicking a different view mode pill calls onViewModeChange with that mode', () => {
     const onViewModeChange = vi.fn();
     render(<ControlPanel {...defaultProps} viewMode="wire" onViewModeChange={onViewModeChange} />);
-    fireEvent.click(screen.getByRole('button', { name: /^SOLID$/i }));
+    const desktopBar = screen.getByTestId('desktop-bar');
+    fireEvent.click(within(desktopBar).getByRole('button', { name: /^SOLID$/i }));
     expect(onViewModeChange).toHaveBeenCalledWith('solid');
   });
 
@@ -62,7 +66,7 @@ describe('ControlPanel bottom bar', () => {
       <ControlPanel {...defaultProps} color="#ff0000" bgColor="#00ff00" />
     );
     const colorInputs = container.querySelectorAll('input[type="color"]');
-    expect(colorInputs.length).toBe(2);
+    expect(colorInputs.length).toBeGreaterThanOrEqual(2);
     const values = Array.from(colorInputs).map(i => i.value);
     expect(values).toContain('#ff0000');
     expect(values).toContain('#00ff00');
@@ -70,15 +74,15 @@ describe('ControlPanel bottom bar', () => {
 
   test('speed slider reflects rotationSpeed prop', () => {
     const { container } = render(<ControlPanel {...defaultProps} rotationSpeed={1.5} />);
-    const rangeInputs = container.querySelectorAll('input[type="range"]');
-    // Speed is the first range input
+    const desktopBar = container.querySelector('[data-testid="desktop-bar"]');
+    const rangeInputs = desktopBar.querySelectorAll('input[type="range"]');
     expect(rangeInputs[0].value).toBe('1.5');
   });
 
   test('opacity slider reflects opacity prop', () => {
     const { container } = render(<ControlPanel {...defaultProps} opacity={0.75} />);
-    const rangeInputs = container.querySelectorAll('input[type="range"]');
-    // Opacity is the last range input (index 2)
+    const desktopBar = container.querySelector('[data-testid="desktop-bar"]');
+    const rangeInputs = desktopBar.querySelectorAll('input[type="range"]');
     expect(rangeInputs[2].value).toBe('0.75');
   });
 
@@ -86,5 +90,22 @@ describe('ControlPanel bottom bar', () => {
     render(<ControlPanel {...defaultProps} />);
     const advancedBtn = screen.queryByRole('button', { name: /advanced/i });
     expect(advancedBtn).toBeNull();
+  });
+});
+
+describe('ControlPanel mobile bar', () => {
+  test('settings toggle button exists in mobile bar', () => {
+    render(<ControlPanel {...defaultProps} />);
+    const mobileBar = screen.getByTestId('mobile-bar');
+    const toggleBtn = within(mobileBar).getByRole('button', { name: /open settings/i });
+    expect(toggleBtn).toBeTruthy();
+  });
+
+  test('settings toggle label changes to "Close settings" after click', () => {
+    render(<ControlPanel {...defaultProps} />);
+    const mobileBar = screen.getByTestId('mobile-bar');
+    const toggleBtn = within(mobileBar).getByRole('button', { name: /open settings/i });
+    fireEvent.click(toggleBtn);
+    expect(within(mobileBar).getByRole('button', { name: /close settings/i })).toBeTruthy();
   });
 });
