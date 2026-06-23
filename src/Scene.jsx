@@ -2,16 +2,15 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-const RESOLUTION = 96;
 const MORPH_DURATION = 800;
 
-function buildPositions(fn, t) {
-  const count = (RESOLUTION + 1) * (RESOLUTION + 1);
+function buildPositions(fn, t, resolution) {
+  const count = (resolution + 1) * (resolution + 1);
   const positions = new Float32Array(count * 3);
   let i = 0;
-  for (let row = 0; row <= RESOLUTION; row++) {
-    for (let col = 0; col <= RESOLUTION; col++) {
-      const { x, y, z } = fn(col / RESOLUTION, row / RESOLUTION, t);
+  for (let row = 0; row <= resolution; row++) {
+    for (let col = 0; col <= resolution; col++) {
+      const { x, y, z } = fn(col / resolution, row / resolution, t);
       positions[i++] = x;
       positions[i++] = y;
       positions[i++] = z;
@@ -20,13 +19,13 @@ function buildPositions(fn, t) {
   return positions;
 }
 
-function buildIndices() {
+function buildIndices(resolution) {
   const indices = [];
-  for (let row = 0; row < RESOLUTION; row++) {
-    for (let col = 0; col < RESOLUTION; col++) {
-      const a = row * (RESOLUTION + 1) + col;
+  for (let row = 0; row < resolution; row++) {
+    for (let col = 0; col < resolution; col++) {
+      const a = row * (resolution + 1) + col;
       const b = a + 1;
-      const c = a + (RESOLUTION + 1);
+      const c = a + (resolution + 1);
       const d = c + 1;
       indices.push(a, b, c, b, d, c);
     }
@@ -37,6 +36,7 @@ function buildIndices() {
 export default function Scene({ preset, rotationSpeed, wireframe, color, resolution, animIntensity }) {
   const mountRef = useRef(null);
   const stateRef = useRef({});
+  const geoRef = useRef(null);
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -61,8 +61,9 @@ export default function Scene({ preset, rotationSpeed, wireframe, color, resolut
     controls.dampingFactor = 0.05;
 
     const geo = new THREE.BufferGeometry();
-    geo.setIndex(new THREE.BufferAttribute(buildIndices(), 1));
-    const posAttr = new THREE.BufferAttribute(buildPositions(preset.fn, 0), 3);
+    geoRef.current = geo;
+    geo.setIndex(new THREE.BufferAttribute(buildIndices(resolution), 1));
+    const posAttr = new THREE.BufferAttribute(buildPositions(preset.fn, 0, resolution), 3);
     geo.setAttribute('position', posAttr);
     geo.computeVertexNormals();
 
@@ -77,7 +78,7 @@ export default function Scene({ preset, rotationSpeed, wireframe, color, resolut
 
     stateRef.current = {
       preset, rotationSpeed, wireframe, color, animIntensity,
-      resolution: 96,
+      resolution,
       solidMat, wireMat, posAttr,
       morph: { from: null, target: null, start: null },
       t: 0,
@@ -103,7 +104,7 @@ export default function Scene({ preset, rotationSpeed, wireframe, color, resolut
         }
         if (progress >= 1) { morph.from = null; morph.target = null; }
       } else {
-        s.posAttr.array.set(buildPositions(s.preset.fn, t));
+        s.posAttr.array.set(buildPositions(s.preset.fn, t, s.resolution));
       }
 
       s.posAttr.needsUpdate = true;
@@ -138,7 +139,7 @@ export default function Scene({ preset, rotationSpeed, wireframe, color, resolut
     const s = stateRef.current;
     if (!s.morph || !s.posAttr) return;
     s.morph.from = new Float32Array(s.posAttr.array);
-    s.morph.target = buildPositions(preset.fn, s.t ?? 0);
+    s.morph.target = buildPositions(preset.fn, s.t ?? 0, s.resolution);
     s.morph.start = performance.now();
     if (s.solidMat) {
       s.solidMat.color.set(color);
@@ -159,6 +160,24 @@ export default function Scene({ preset, rotationSpeed, wireframe, color, resolut
   }, [color]);
 
   useEffect(() => { stateRef.current.animIntensity = animIntensity; }, [animIntensity]);
+
+  useEffect(() => {
+    const s = stateRef.current;
+    const geo = geoRef.current;
+    if (!geo || !s.posAttr) return;
+    s.resolution = resolution;
+
+    geo.setIndex(new THREE.BufferAttribute(buildIndices(resolution), 1));
+
+    const newPositions = buildPositions(s.preset.fn, s.t ?? 0, resolution);
+    const newPosAttr = new THREE.BufferAttribute(newPositions, 3);
+    geo.setAttribute('position', newPosAttr);
+    s.posAttr = newPosAttr;
+
+    s.morph = { from: null, target: null, start: null };
+
+    geo.computeVertexNormals();
+  }, [resolution]);
 
   return <div ref={mountRef} style={{ width: '100vw', height: '100vh' }} />;
 }
