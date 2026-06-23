@@ -1,167 +1,150 @@
-import { useState } from 'react';
+import { useRef } from 'react';
+
+function SliderControl({ label, min, max, step, value, onChange, unit = '' }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className="text-white/20 text-xs uppercase tracking-widest whitespace-nowrap">{label}</span>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={e => onChange(parseFloat(e.target.value))}
+        className="w-14 cursor-pointer accent-white/50"
+      />
+      <span className="text-white/20 text-xs min-w-[28px]">{value.toFixed(1)}{unit}</span>
+    </div>
+  );
+}
+
+function ColorSwatch({ label, value, onChange }) {
+  const inputRef = useRef(null);
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className="text-white/20 text-xs uppercase tracking-widest">{label}</span>
+      <div
+        className="w-4 h-4 rounded-full cursor-pointer border border-white/15"
+        style={{ background: value }}
+        onClick={() => inputRef.current?.click()}
+      />
+      <input
+        ref={inputRef}
+        type="color"
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        className="sr-only"
+      />
+    </div>
+  );
+}
+
+const Divider = () => (
+  <div className="self-stretch w-px mx-1" style={{ background: 'rgba(255,255,255,0.07)' }} />
+);
 
 export default function ControlPanel({
   presets,
   activeIndex,
   rotationSpeed,
-  wireframe,
+  viewMode,
   color,
-  resolution,
+  bgColor,
+  opacity,
   animIntensity,
   onPresetChange,
   onSpeedChange,
-  onWireframeChange,
+  onViewModeChange,
   onColorChange,
-  onResolutionChange,
+  onBgColorChange,
+  onOpacityChange,
   onAnimIntensityChange,
 }) {
-  const [showAdvanced, setShowAdvanced] = useState(false);
   const prev = () => onPresetChange((activeIndex - 1 + presets.length) % presets.length);
   const next = () => onPresetChange((activeIndex + 1) % presets.length);
 
   return (
     <div
-      style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 10, padding: '15px 13px' }}
-      className="w-64 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md"
+      className="fixed bottom-0 left-0 right-0 z-10 flex items-center h-11 px-5 gap-3"
+      style={{ background: 'rgba(8,8,18,0.9)', borderTop: '1px solid rgba(255,255,255,0.07)' }}
     >
-      {/* Preset name + arrows */}
-      <div className="flex items-center justify-between mb-3">
+      {/* Preset */}
+      <div className="flex items-center gap-2 shrink-0">
         <button
           onClick={prev}
-          className="text-white/50 hover:text-white/90 transition-colors text-lg leading-none px-1"
+          className="text-white/20 hover:text-white/60 transition-colors text-lg leading-none"
           aria-label="Previous preset"
         >
           ‹
         </button>
-        <span className="text-white/80 text-sm font-medium tracking-wide truncate px-2">
-          {presets[activeIndex].name}
+        <span className="text-white/75 text-xs font-semibold tracking-widest min-w-[72px] text-center">
+          {presets[activeIndex].name.toUpperCase()}
         </span>
         <button
           onClick={next}
-          className="text-white/50 hover:text-white/90 transition-colors text-lg leading-none px-1"
+          className="text-white/20 hover:text-white/60 transition-colors text-lg leading-none"
           aria-label="Next preset"
         >
           ›
         </button>
       </div>
 
-      {/* Rotation speed */}
-      <div className="mb-3">
-        <div className="flex justify-between mb-1">
-          <label htmlFor="speed-slider" className="text-white/40 text-xs uppercase tracking-widest">Speed</label>
-          <span className="text-white/40 text-xs">{rotationSpeed.toFixed(1)}×</span>
+      <Divider />
+
+      {/* View mode */}
+      <div className="flex items-center gap-2 shrink-0">
+        <span className="text-white/20 text-xs uppercase tracking-widest">View</span>
+        <div className="flex gap-0.5">
+          {[['wire', 'WIRE'], ['overlay', 'OVL'], ['solid', 'SOLID']].map(([mode, label]) => (
+            <button
+              key={mode}
+              onClick={() => onViewModeChange(mode)}
+              aria-pressed={viewMode === mode}
+              className={`px-2 py-1 rounded text-xs tracking-wide transition-colors ${
+                viewMode === mode
+                  ? 'bg-white/20 text-white/75 font-semibold'
+                  : 'bg-white/5 text-white/25 hover:text-white/50'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
-        <input
-          id="speed-slider"
-          type="range"
-          min="0"
-          max="2"
-          step="0.05"
+      </div>
+
+      <Divider />
+
+      {/* Motion */}
+      <div className="flex items-center gap-4 shrink-0">
+        <SliderControl
+          label="Speed"
+          min={0} max={2} step={0.05}
           value={rotationSpeed}
-          onChange={(e) => onSpeedChange(parseFloat(e.target.value))}
-          className="w-full accent-white/60 cursor-pointer"
+          onChange={onSpeedChange}
+          unit="×"
+        />
+        <SliderControl
+          label="Anim"
+          min={0} max={3} step={0.1}
+          value={animIntensity}
+          onChange={onAnimIntensityChange}
+          unit="×"
         />
       </div>
 
-      {/* Wireframe toggle */}
-      <div className="flex items-center justify-between mb-4">
-        <span className="text-white/40 text-xs uppercase tracking-widest">Wireframe</span>
-        <button
-          onClick={() => onWireframeChange(!wireframe)}
-          className={`relative w-10 h-5 rounded-full transition-colors duration-200 ${
-            wireframe ? 'bg-white/40' : 'bg-white/10'
-          }`}
-          aria-pressed={wireframe}
-        >
-          <span
-            className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform duration-200 ${
-              wireframe ? 'translate-x-5' : 'translate-x-0'
-            }`}
-          />
-        </button>
+      <Divider />
+
+      {/* Appearance */}
+      <div className="flex items-center gap-4 shrink-0">
+        <ColorSwatch label="Surface" value={color} onChange={onColorChange} />
+        <ColorSwatch label="BG" value={bgColor} onChange={onBgColorChange} />
+        <SliderControl
+          label="Opacity"
+          min={0} max={1} step={0.01}
+          value={opacity}
+          onChange={onOpacityChange}
+        />
       </div>
-
-      {/* Dot indicators */}
-      <div className="flex justify-center gap-1.5 flex-wrap mt-1 mb-3">
-        {presets.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => onPresetChange(i)}
-            className={`w-1.5 h-1.5 rounded-full transition-all duration-200 ${
-              i === activeIndex ? 'bg-white/80 scale-125' : 'bg-white/20 hover:bg-white/40'
-            }`}
-            aria-label={`Preset ${i + 1}`}
-          />
-        ))}
-      </div>
-
-      {/* Advanced toggle */}
-      <button
-        onClick={() => setShowAdvanced(!showAdvanced)}
-        className="flex items-center justify-between w-full text-white/30 hover:text-white/60 transition-colors text-xs uppercase tracking-widest"
-        aria-expanded={showAdvanced}
-      >
-        <span>Advanced</span>
-        <span
-          className="transition-transform duration-200"
-          style={{ display: 'inline-block', transform: showAdvanced ? 'rotate(180deg)' : 'rotate(0deg)' }}
-        >
-          ▾
-        </span>
-      </button>
-
-      {/* Advanced controls */}
-      {showAdvanced && (
-        <div className="mt-3 flex flex-col gap-3">
-          {/* Color */}
-          <div className="flex items-center justify-between">
-            <span className="text-white/40 text-xs uppercase tracking-widest">Color</span>
-            <input
-              type="color"
-              value={color}
-              onChange={(e) => onColorChange(e.target.value)}
-              style={{ width: '32px', height: '20px', padding: 0, border: 'none', background: 'transparent', cursor: 'pointer', borderRadius: '4px' }}
-              aria-label="Shape color"
-            />
-          </div>
-
-          {/* Resolution */}
-          <div>
-            <div className="flex justify-between mb-1">
-              <label htmlFor="resolution-slider" className="text-white/40 text-xs uppercase tracking-widest">Mesh</label>
-              <span className="text-white/40 text-xs">{resolution}</span>
-            </div>
-            <input
-              id="resolution-slider"
-              type="range"
-              min="16"
-              max="192"
-              step="8"
-              value={resolution}
-              onChange={(e) => onResolutionChange(parseInt(e.target.value, 10))}
-              className="w-full accent-white/60 cursor-pointer"
-            />
-          </div>
-
-          {/* Animation intensity */}
-          <div>
-            <div className="flex justify-between mb-1">
-              <label htmlFor="anim-slider" className="text-white/40 text-xs uppercase tracking-widest">Anim</label>
-              <span className="text-white/40 text-xs">{animIntensity.toFixed(1)}×</span>
-            </div>
-            <input
-              id="anim-slider"
-              type="range"
-              min="0"
-              max="3"
-              step="0.1"
-              value={animIntensity}
-              onChange={(e) => onAnimIntensityChange(parseFloat(e.target.value))}
-              className="w-full accent-white/60 cursor-pointer"
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }
