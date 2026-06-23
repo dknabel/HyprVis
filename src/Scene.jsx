@@ -34,7 +34,7 @@ function buildIndices() {
   return new Uint32Array(indices);
 }
 
-export default function Scene({ preset, rotationSpeed, wireframe }) {
+export default function Scene({ preset, rotationSpeed, wireframe, color, resolution, animIntensity }) {
   const mountRef = useRef(null);
   const stateRef = useRef({});
 
@@ -67,16 +67,17 @@ export default function Scene({ preset, rotationSpeed, wireframe }) {
     geo.computeVertexNormals();
 
     const solidMat = new THREE.MeshPhongMaterial({
-      color: preset.color, shininess: 60, side: THREE.DoubleSide,
+      color: color, shininess: 60, side: THREE.DoubleSide,
     });
     const wireMat = new THREE.MeshBasicMaterial({
-      color: preset.color, wireframe: true, side: THREE.DoubleSide,
+      color: color, wireframe: true, side: THREE.DoubleSide,
     });
     const mesh = new THREE.Mesh(geo, solidMat);
     scene.add(mesh);
 
     stateRef.current = {
-      preset, rotationSpeed, wireframe,
+      preset, rotationSpeed, wireframe, color, animIntensity,
+      resolution: 96,
       solidMat, wireMat, posAttr,
       morph: { from: null, target: null, start: null },
       t: 0,
@@ -88,7 +89,7 @@ export default function Scene({ preset, rotationSpeed, wireframe }) {
       rafId = requestAnimationFrame(animate);
       const s = stateRef.current;
       const morph = s.morph;
-      t += 0.005;
+      t += 0.005 * s.animIntensity;
       s.t = t;
 
       if (morph.target) {
@@ -137,17 +138,27 @@ export default function Scene({ preset, rotationSpeed, wireframe }) {
     const s = stateRef.current;
     if (!s.morph || !s.posAttr) return;
     s.morph.from = new Float32Array(s.posAttr.array);
-    s.morph.target = buildPositions(preset.fn, s.t ?? 0);
+    s.morph.target = buildPositions(s.preset.fn, s.t ?? 0);
     s.morph.start = performance.now();
     if (s.solidMat) {
-      s.solidMat.color.set(preset.color);
-      s.wireMat.color.set(preset.color);
+      s.solidMat.color.set(color);
+      s.wireMat.color.set(color);
     }
     s.preset = preset;
   }, [preset]);
 
   useEffect(() => { stateRef.current.rotationSpeed = rotationSpeed; }, [rotationSpeed]);
   useEffect(() => { stateRef.current.wireframe = wireframe; }, [wireframe]);
+
+  useEffect(() => {
+    const s = stateRef.current;
+    if (!s.solidMat) return;
+    s.color = color;
+    s.solidMat.color.set(color);
+    s.wireMat.color.set(color);
+  }, [color]);
+
+  useEffect(() => { stateRef.current.animIntensity = animIntensity; }, [animIntensity]);
 
   return <div ref={mountRef} style={{ width: '100vw', height: '100vh' }} />;
 }
