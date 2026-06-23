@@ -483,4 +483,304 @@ export const presets = [
       };
     },
   },
+  {
+    name: 'Figure-8 Knot',
+    color: '#e11d48',
+    fn(u, v, t) {
+      const anim = t * 0.09;
+      return frenetTube(
+        (s) => ({
+          x: (2 + Math.cos(2 * s)) * Math.cos(3 * s + anim) * 0.38,
+          y: (2 + Math.cos(2 * s)) * Math.sin(3 * s + anim) * 0.38,
+          z: Math.sin(4 * s) * 0.38,
+        }),
+        u, v, 0.1
+      );
+    },
+  },
+  {
+    name: 'Astroidal Ellipsoid',
+    color: '#0891b2',
+    fn(u, v, t) {
+      const theta = u * Math.PI;
+      const phi = v * TWO_PI;
+      const s = 1.5 + 0.08 * Math.sin(t * 0.6);
+      return {
+        x: s * Math.pow(Math.abs(Math.sin(theta)), 3) * Math.pow(Math.abs(Math.cos(phi)), 1) * Math.sign(Math.sin(theta)) * Math.sign(Math.cos(phi)),
+        y: s * Math.pow(Math.abs(Math.cos(theta)), 3) * Math.sign(Math.cos(theta)),
+        z: s * Math.pow(Math.abs(Math.sin(theta)), 3) * Math.pow(Math.abs(Math.sin(phi)), 1) * Math.sign(Math.sin(theta)) * Math.sign(Math.sin(phi)),
+      };
+    },
+  },
+  {
+    name: 'Pillow',
+    color: '#16a34a',
+    fn(u, v, t) {
+      const U = u * TWO_PI;
+      const V = v * TWO_PI;
+      const s = 1 + 0.07 * Math.sin(t * 0.5);
+      return {
+        x: s * Math.sin(U),
+        y: s * Math.sin(V),
+        z: s * Math.cos(U) * Math.cos(V),
+      };
+    },
+  },
+  {
+    name: 'Snail Shell',
+    color: '#ca8a04',
+    fn(u, v, t) {
+      const V = v * TWO_PI * 3;
+      const U = u * TWO_PI;
+      const r = 0.18 * Math.exp(0.2 * V);
+      const drift = t * 0.04;
+      return {
+        x: r * Math.cos(V + drift) * (1 + Math.cos(U)),
+        y: r * Math.sin(V + drift) * (1 + Math.cos(U)),
+        z: r * Math.sin(U) + 0.05 * V - 2.0,
+      };
+    },
+  },
+  {
+    name: 'Clifford Torus',
+    color: '#7c3aed',
+    fn(u, v, t) {
+      const U = u * TWO_PI + t * 0.07;
+      const V = v * TWO_PI + t * 0.05;
+      const r = 1 / Math.SQRT2;
+      return {
+        x: r * Math.cos(U) * 1.8,
+        y: r * Math.sin(U) * 1.8,
+        z: r * Math.cos(V + U) * 1.4,
+      };
+    },
+  },
+  {
+    name: 'Sine Wave Torus',
+    color: '#0284c7',
+    fn(u, v, t) {
+      const U = u * TWO_PI;
+      const V = v * TWO_PI;
+      const R = 1.4, r = 0.45 + 0.12 * Math.sin(4 * U + t * 0.4);
+      return {
+        x: (R + r * Math.cos(V)) * Math.cos(U),
+        y: r * Math.sin(V),
+        z: (R + r * Math.cos(V)) * Math.sin(U),
+      };
+    },
+  },
+  {
+    name: 'Steiner Surface',
+    color: '#be185d',
+    fn(u, v, t) {
+      const U = u * Math.PI;
+      const V = v * Math.PI;
+      const s = 1.4 + 0.08 * Math.sin(t * 0.6);
+      const su = Math.sin(U), cu = Math.cos(U);
+      const sv = Math.sin(V), cv = Math.cos(V);
+      return {
+        x: s * su * su * sv * cv,
+        y: s * su * cu * sv * sv,
+        z: s * su * cu * cv,
+      };
+    },
+  },
+  {
+    name: 'Hyperboloid',
+    color: '#059669',
+    fn(u, v, t) {
+      const U = (u - 0.5) * 4;
+      const V = v * TWO_PI + t * 0.1;
+      const a = 0.7 + 0.08 * Math.sin(t * 0.4);
+      const r = Math.sqrt(1 + U * U * 0.25);
+      return {
+        x: a * r * Math.cos(V),
+        y: U * 0.6,
+        z: a * r * Math.sin(V),
+      };
+    },
+  },
+  {
+    name: 'Paraboloid',
+    color: '#b45309',
+    fn(u, v, t) {
+      const U = u * 1.6;
+      const V = v * TWO_PI;
+      const s = 1 + 0.08 * Math.sin(t * 0.5);
+      return {
+        x: s * U * Math.cos(V),
+        y: U * U * 0.5 * s - 1.3,
+        z: s * U * Math.sin(V),
+      };
+    },
+  },
+  {
+    name: 'Henneberg',
+    color: '#9333ea',
+    fn(u, v, t) {
+      const U = (u - 0.5) * 2;
+      const V = v * Math.PI;
+      const drift = t * 0.04;
+      return {
+        x: (2 * Math.sinh(U) * Math.cos(V) - (2 / 3) * Math.sinh(3 * U) * Math.cos(3 * V + drift)) * 0.3,
+        y: (2 * Math.cosh(2 * U) * Math.cos(2 * V) - 0.5) * 0.3,
+        z: (2 * Math.sinh(U) * Math.sin(V) - (2 / 3) * Math.sinh(3 * U) * Math.sin(3 * V + drift)) * 0.3,
+      };
+    },
+  },
+  {
+    name: 'Ripple Plane',
+    color: '#0e7490',
+    fn(u, v, t) {
+      const U = (u - 0.5) * 5;
+      const V = (v - 0.5) * 5;
+      const d = Math.sqrt(U * U + V * V);
+      const s = 1 + 0.04 * Math.sin(t * 0.3);
+      return {
+        x: U * s,
+        y: 0.5 * Math.sin(d * 2.5 - t * 1.2) / (d + 0.5),
+        z: V * s,
+      };
+    },
+  },
+  {
+    name: 'Lemniscate Tube',
+    color: '#d97706',
+    fn(u, v, t) {
+      const anim = t * 0.07;
+      return frenetTube(
+        (s) => {
+          const r = Math.sqrt(Math.abs(Math.cos(2 * s))) * 1.2;
+          return {
+            x: r * Math.cos(s + anim) * 0.6,
+            y: 0.15 * Math.sin(2 * s),
+            z: r * Math.sin(s + anim) * 0.6,
+          };
+        },
+        u, v, 0.11
+      );
+    },
+  },
+  {
+    name: 'Catalan',
+    color: '#6d28d9',
+    fn(u, v, t) {
+      const U = (u - 0.5) * 4;
+      const V = (v - 0.5) * 4;
+      const drift = t * 0.03;
+      return {
+        x: (U - Math.sin(U) * Math.cosh(V + drift)) * 0.28,
+        y: (1 - Math.cos(U) * Math.cosh(V + drift)) * 0.28,
+        z: (-4 * Math.sin(U / 2) * Math.sinh((V + drift) / 2)) * 0.28,
+      };
+    },
+  },
+  {
+    name: 'Spiraloid',
+    color: '#dc2626',
+    fn(u, v, t) {
+      const U = u * TWO_PI * 2;
+      const V = (v - 0.5) * 3;
+      const drift = t * 0.1;
+      const r = 1.0 + 0.5 * Math.cos(U + drift);
+      return {
+        x: r * Math.cos(U),
+        y: V + 0.3 * Math.sin(3 * U + drift),
+        z: r * Math.sin(U),
+      };
+    },
+  },
+  {
+    name: 'Petal Surface',
+    color: '#10b981',
+    fn(u, v, t) {
+      const theta = u * Math.PI;
+      const phi = v * TWO_PI;
+      const petals = 5;
+      const r = (1.2 + 0.8 * Math.pow(Math.abs(Math.sin(petals * phi / 2)), 1.5)) * (1 + 0.06 * Math.sin(t * 0.8));
+      const st = Math.sin(theta);
+      return {
+        x: r * st * Math.cos(phi),
+        y: r * Math.cos(theta),
+        z: r * st * Math.sin(phi),
+      };
+    },
+  },
+  {
+    name: 'Bour',
+    color: '#0369a1',
+    fn(u, v, t) {
+      const U = u * 1.6;
+      const V = v * TWO_PI + t * 0.05;
+      const n = 2;
+      return {
+        x: (U * Math.cos(V) - (Math.pow(U, 2 * n - 1) / (2 * n - 1)) * Math.cos((2 * n - 1) * V)) * 0.5,
+        y: (-U * Math.sin(V) - (Math.pow(U, 2 * n - 1) / (2 * n - 1)) * Math.sin((2 * n - 1) * V)) * 0.5,
+        z: (Math.pow(U, n) / n) * Math.cos(n * V) * 0.5,
+      };
+    },
+  },
+  {
+    name: 'Sievert–Enneper',
+    color: '#b91c1c',
+    fn(u, v, t) {
+      const c = 1;
+      const U = (u - 0.5) * Math.PI * 1.8;
+      const V = 0.05 + v * (Math.PI - 0.1);
+      const drift = t * 0.03;
+      const cotV = Math.cos(V) / (Math.sin(V) + 1e-8);
+      const denom = 1 + c * c * Math.cos(U + drift) ** 2 * Math.sin(V) ** 2;
+      if (Math.abs(denom) < 1e-6) return { x: 0, y: 0, z: 0 };
+      return {
+        x: (1 / c) * (1 / Math.tan(V)) + (c / denom) * Math.sin(V) * Math.cos(U + drift) * (-Math.cos(V) * Math.cos(U + drift) + Math.sin(U + drift) * Math.sqrt(1 + c * c * Math.sin(V) ** 2)),
+        y: (c / denom) * Math.sin(V) * Math.sin(U + drift) * (Math.cos(V) * Math.cos(U + drift) + Math.sin(U + drift) * Math.sqrt(1 + c * c * Math.sin(V) ** 2)),
+        z: Math.log(Math.tan(V / 2)) / c + (1 / denom) * Math.sin(V) * Math.cos(V),
+      };
+    },
+  },
+  {
+    name: 'Twisted Cylinder',
+    color: '#7e22ce',
+    fn(u, v, t) {
+      const U = (u - 0.5) * 4;
+      const V = v * TWO_PI;
+      const twist = U * 1.2 + t * 0.12;
+      const r = 0.7 + 0.15 * Math.sin(3 * V + t * 0.3);
+      return {
+        x: r * Math.cos(V + twist),
+        y: U * 0.7,
+        z: r * Math.sin(V + twist),
+      };
+    },
+  },
+  {
+    name: 'Hypotrochoid',
+    color: '#065f46',
+    fn(u, v, t) {
+      const U = u * TWO_PI;
+      const V = (v - 0.5) * 1.2;
+      const R = 1.0, r = 0.4, d = 0.7;
+      const drift = t * 0.08;
+      return {
+        x: ((R - r) * Math.cos(U + drift) + d * Math.cos((R - r) / r * U + drift)) * 0.7,
+        y: V + 0.1 * Math.sin(5 * U),
+        z: ((R - r) * Math.sin(U + drift) - d * Math.sin((R - r) / r * U + drift)) * 0.7,
+      };
+    },
+  },
+  {
+    name: 'Nautilus',
+    color: '#0f766e',
+    fn(u, v, t) {
+      const U = u * TWO_PI * 4;
+      const V = v * TWO_PI;
+      const r = 0.12 * Math.exp(0.18 * U);
+      const drift = t * 0.05;
+      return {
+        x: r * Math.cos(U + drift) * (1.2 + Math.cos(V)),
+        y: r * Math.sin(U + drift) * (1.2 + Math.cos(V)),
+        z: r * Math.sin(V) * 0.6,
+      };
+    },
+  },
 ];
