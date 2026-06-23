@@ -9,7 +9,7 @@ function SliderControl({ label, min, max, step, value, onChange, unit = '' }) {
         min={min}
         max={max}
         step={step}
-        value={Number.isInteger(value) ? value.toFixed(1) : value}
+        value={value}
         onChange={e => onChange(parseFloat(e.target.value))}
         className="w-14 cursor-pointer accent-white/50"
       />

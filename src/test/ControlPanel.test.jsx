@@ -141,13 +141,13 @@ describe('ControlPanel mobile drawer', () => {
   });
 
   test('drawer contains speed, anim, and opacity sliders', () => {
-    render(<ControlPanel {...defaultProps} rotationSpeed={1.2} animIntensity={2.0} opacity={0.5} />);
+    render(<ControlPanel {...defaultProps} rotationSpeed={1.2} animIntensity={2.1} opacity={0.5} />);
     fireEvent.click(screen.getByRole('button', { name: /open settings/i }));
     const drawer = screen.getByRole('region', { name: /settings drawer/i });
     const sliders = drawer.querySelectorAll('input[type="range"]');
     expect(sliders.length).toBe(3);
     expect(sliders[0].value).toBe('1.2'); // speed
-    expect(sliders[1].value).toBe('2.0'); // anim
+    expect(sliders[1].value).toBe('2.1'); // anim
     expect(sliders[2].value).toBe('0.5'); // opacity
   });
 
