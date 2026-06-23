@@ -12,8 +12,8 @@ export default function ControlPanel({
 
   return (
     <div
-      style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 10 }}
-      className="w-64 rounded-2xl border border-white/10 bg-white/5 px-[26px] py-[30px] backdrop-blur-md"
+      style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 10, padding: '30px 26px' }}
+      className="w-64 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md"
     >
       {/* Preset name + arrows */}
       <div className="flex items-center justify-between mb-3">
