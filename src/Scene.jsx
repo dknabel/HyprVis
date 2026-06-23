@@ -20,17 +20,23 @@ function buildPositions(fn, t, resolution) {
 }
 
 function buildIndices(resolution) {
-  const indices = [];
+  const indices = new Uint32Array(resolution * resolution * 6);
+  let idx = 0;
   for (let row = 0; row < resolution; row++) {
     for (let col = 0; col < resolution; col++) {
       const a = row * (resolution + 1) + col;
       const b = a + 1;
       const c = a + (resolution + 1);
       const d = c + 1;
-      indices.push(a, b, c, b, d, c);
+      indices[idx++] = a;
+      indices[idx++] = b;
+      indices[idx++] = c;
+      indices[idx++] = b;
+      indices[idx++] = d;
+      indices[idx++] = c;
     }
   }
-  return new Uint32Array(indices);
+  return indices;
 }
 
 export default function Scene({ preset, rotationSpeed, wireframe, color, resolution, animIntensity }) {
@@ -77,11 +83,12 @@ export default function Scene({ preset, rotationSpeed, wireframe, color, resolut
     scene.add(mesh);
 
     stateRef.current = {
-      preset, rotationSpeed, wireframe, color, animIntensity,
+      preset, rotationSpeed, wireframe, animIntensity,
       resolution,
       solidMat, wireMat, posAttr,
       morph: { from: null, target: null, start: null },
       t: 0,
+      renderer,
     };
 
     let t = 0, rafId;
@@ -102,13 +109,20 @@ export default function Scene({ preset, rotationSpeed, wireframe, color, resolut
         for (let i = 0; i < arr.length; i++) {
           arr[i] = morph.from[i] + (morph.target[i] - morph.from[i]) * ease;
         }
-        if (progress >= 1) { morph.from = null; morph.target = null; }
-      } else {
+        s.posAttr.needsUpdate = true;
+        geo.computeVertexNormals();
+        if (progress >= 1) {
+          t = s.morph.targetT ?? t;
+          s.t = t;
+          morph.from = null;
+          morph.target = null;
+          morph.targetT = null;
+        }
+      } else if (s.animIntensity !== 0) {
         s.posAttr.array.set(buildPositions(s.preset.fn, t, s.resolution));
+        s.posAttr.needsUpdate = true;
+        geo.computeVertexNormals();
       }
-
-      s.posAttr.needsUpdate = true;
-      geo.computeVertexNormals();
       mesh.rotation.y += 0.002 * s.rotationSpeed;
       mesh.material = s.wireframe ? s.wireMat : s.solidMat;
       controls.update();
@@ -137,14 +151,11 @@ export default function Scene({ preset, rotationSpeed, wireframe, color, resolut
 
   useEffect(() => {
     const s = stateRef.current;
-    if (!s.morph || !s.posAttr) return;
+    if (!s.posAttr) return;
     s.morph.from = new Float32Array(s.posAttr.array);
     s.morph.target = buildPositions(preset.fn, s.t ?? 0, s.resolution);
     s.morph.start = performance.now();
-    if (s.solidMat) {
-      s.solidMat.color.set(color);
-      s.wireMat.color.set(color);
-    }
+    s.morph.targetT = s.t ?? 0;
     s.preset = preset;
   }, [preset]);
 
@@ -154,7 +165,6 @@ export default function Scene({ preset, rotationSpeed, wireframe, color, resolut
   useEffect(() => {
     const s = stateRef.current;
     if (!s.solidMat) return;
-    s.color = color;
     s.solidMat.color.set(color);
     s.wireMat.color.set(color);
   }, [color]);
@@ -167,16 +177,23 @@ export default function Scene({ preset, rotationSpeed, wireframe, color, resolut
     if (!geo || !s.posAttr) return;
     s.resolution = resolution;
 
-    geo.setIndex(new THREE.BufferAttribute(buildIndices(resolution), 1));
+    const oldIndex = geo.getIndex();
+    const oldPos = geo.getAttribute('position');
 
-    const newPositions = buildPositions(s.preset.fn, s.t ?? 0, resolution);
-    const newPosAttr = new THREE.BufferAttribute(newPositions, 3);
+    geo.setIndex(new THREE.BufferAttribute(buildIndices(resolution), 1));
+    const newPosAttr = new THREE.BufferAttribute(buildPositions(s.preset.fn, s.t ?? 0, resolution), 3);
     geo.setAttribute('position', newPosAttr);
     s.posAttr = newPosAttr;
 
-    s.morph = { from: null, target: null, start: null };
+    s.morph.from = null;
+    s.morph.target = null;
+    s.morph.start = null;
+    s.morph.targetT = null;
 
     geo.computeVertexNormals();
+
+    if (oldIndex) oldIndex.dispose();
+    if (oldPos) oldPos.dispose();
   }, [resolution]);
 
   return <div ref={mountRef} style={{ width: '100vw', height: '100vh' }} />;

@@ -112,7 +112,7 @@ export default function ControlPanel({
 
       {/* Advanced controls */}
       {showAdvanced && (
-        <div className="mt-3" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div className="mt-3 flex flex-col gap-3">
           {/* Color */}
           <div className="flex items-center justify-between">
             <span className="text-white/40 text-xs uppercase tracking-widest">Color</span>

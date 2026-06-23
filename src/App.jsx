@@ -13,7 +13,11 @@ export default function App() {
 
   function handlePresetChange(index) {
     setActiveIndex(index);
-    setColor(presets[index].color);
+    setColor(currentColor =>
+      currentColor === presets[activeIndex].color
+        ? presets[index].color
+        : currentColor
+    );
   }
 
   return (
