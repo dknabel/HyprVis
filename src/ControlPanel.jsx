@@ -12,7 +12,7 @@ export default function ControlPanel({
 
   return (
     <div
-      style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 10, padding: '30px 26px' }}
+      style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 10, padding: '15px 13px' }}
       className="w-64 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md"
     >
       {/* Preset name + arrows */}
