@@ -138,7 +138,7 @@ export default function Scene({ preset, rotationSpeed, wireframe, color, resolut
     const s = stateRef.current;
     if (!s.morph || !s.posAttr) return;
     s.morph.from = new Float32Array(s.posAttr.array);
-    s.morph.target = buildPositions(s.preset.fn, s.t ?? 0);
+    s.morph.target = buildPositions(preset.fn, s.t ?? 0);
     s.morph.start = performance.now();
     if (s.solidMat) {
       s.solidMat.color.set(color);
