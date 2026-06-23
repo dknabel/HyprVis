@@ -109,3 +109,73 @@ describe('ControlPanel mobile bar', () => {
     expect(within(mobileBar).getByRole('button', { name: /close settings/i })).toBeTruthy();
   });
 });
+
+describe('ControlPanel mobile drawer', () => {
+  test('drawer is not present when closed', () => {
+    render(<ControlPanel {...defaultProps} />);
+    expect(screen.queryByRole('region', { name: /settings drawer/i })).toBeNull();
+  });
+
+  test('clicking Open settings renders the drawer', () => {
+    render(<ControlPanel {...defaultProps} />);
+    fireEvent.click(screen.getByRole('button', { name: /open settings/i }));
+    expect(screen.getByRole('region', { name: /settings drawer/i })).toBeTruthy();
+  });
+
+  test('drawer contains view mode buttons', () => {
+    render(<ControlPanel {...defaultProps} viewMode="wire" />);
+    fireEvent.click(screen.getByRole('button', { name: /open settings/i }));
+    const drawer = screen.getByRole('region', { name: /settings drawer/i });
+    expect(within(drawer).getByRole('button', { name: /^WIRE$/i })).toBeTruthy();
+    expect(within(drawer).getByRole('button', { name: /^OVL$/i })).toBeTruthy();
+    expect(within(drawer).getByRole('button', { name: /^SOLID$/i })).toBeTruthy();
+  });
+
+  test('drawer view mode button calls onViewModeChange', () => {
+    const onViewModeChange = vi.fn();
+    render(<ControlPanel {...defaultProps} viewMode="wire" onViewModeChange={onViewModeChange} />);
+    fireEvent.click(screen.getByRole('button', { name: /open settings/i }));
+    const drawer = screen.getByRole('region', { name: /settings drawer/i });
+    fireEvent.click(within(drawer).getByRole('button', { name: /^SOLID$/i }));
+    expect(onViewModeChange).toHaveBeenCalledWith('solid');
+  });
+
+  test('drawer contains speed, anim, and opacity sliders', () => {
+    render(<ControlPanel {...defaultProps} rotationSpeed={1.2} animIntensity={2.0} opacity={0.5} />);
+    fireEvent.click(screen.getByRole('button', { name: /open settings/i }));
+    const drawer = screen.getByRole('region', { name: /settings drawer/i });
+    const sliders = drawer.querySelectorAll('input[type="range"]');
+    expect(sliders.length).toBe(3);
+    expect(sliders[0].value).toBe('1.2'); // speed
+    expect(sliders[1].value).toBe('2.0'); // anim
+    expect(sliders[2].value).toBe('0.5'); // opacity
+  });
+
+  test('drawer contains surface and bg color inputs', () => {
+    render(<ControlPanel {...defaultProps} color="#ff0000" bgColor="#0000ff" />);
+    fireEvent.click(screen.getByRole('button', { name: /open settings/i }));
+    const drawer = screen.getByRole('region', { name: /settings drawer/i });
+    const colorInputs = drawer.querySelectorAll('input[type="color"]');
+    expect(colorInputs.length).toBe(2);
+    const vals = Array.from(colorInputs).map(i => i.value);
+    expect(vals).toContain('#ff0000');
+    expect(vals).toContain('#0000ff');
+  });
+
+  test('clicking the backdrop closes the drawer', () => {
+    render(<ControlPanel {...defaultProps} />);
+    fireEvent.click(screen.getByRole('button', { name: /open settings/i }));
+    expect(screen.getByRole('region', { name: /settings drawer/i })).toBeTruthy();
+    fireEvent.click(screen.getByTestId('mobile-backdrop'));
+    expect(screen.queryByRole('region', { name: /settings drawer/i })).toBeNull();
+  });
+
+  test('clicking Close settings closes the drawer', () => {
+    render(<ControlPanel {...defaultProps} />);
+    fireEvent.click(screen.getByRole('button', { name: /open settings/i }));
+    expect(screen.getByRole('region', { name: /settings drawer/i })).toBeTruthy();
+    const mobileBar = screen.getByTestId('mobile-bar');
+    fireEvent.click(within(mobileBar).getByRole('button', { name: /close settings/i }));
+    expect(screen.queryByRole('region', { name: /settings drawer/i })).toBeNull();
+  });
+});
