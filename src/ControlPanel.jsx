@@ -13,7 +13,7 @@ function SliderControl({ label, min, max, step, value, onChange, unit = '' }) {
         onChange={e => onChange(parseFloat(e.target.value))}
         className="w-14 cursor-pointer accent-white/50"
       />
-      <span className="text-white/20 text-xs min-w-[28px]">{value.toFixed(1)}{unit}</span>
+      <span className="text-white/20 text-xs min-w-[28px]">{(+value || 0).toFixed(1)}{unit}</span>
     </div>
   );
 }
@@ -24,6 +24,8 @@ function ColorSwatch({ label, value, onChange }) {
     <div className="flex items-center gap-1.5">
       <span className="text-white/20 text-xs uppercase tracking-widest">{label}</span>
       <div
+        aria-label={`${label} color picker`}
+        role="button"
         className="w-4 h-4 rounded-full cursor-pointer border border-white/15"
         style={{ background: value }}
         onClick={() => inputRef.current?.click()}

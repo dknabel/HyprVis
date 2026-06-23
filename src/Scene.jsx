@@ -43,7 +43,6 @@ function buildIndices(resolution) {
 export default function Scene({ preset, rotationSpeed, viewMode, color, bgColor, opacity, animIntensity }) {
   const mountRef = useRef(null);
   const stateRef = useRef({});
-  const geoRef = useRef(null);
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -66,7 +65,6 @@ export default function Scene({ preset, rotationSpeed, viewMode, color, bgColor,
     controls.dampingFactor = 0.05;
 
     const geo = new THREE.BufferGeometry();
-    geoRef.current = geo;
     geo.setIndex(new THREE.BufferAttribute(buildIndices(RESOLUTION), 1));
     const posAttr = new THREE.BufferAttribute(buildPositions(preset.fn, 0, RESOLUTION), 3);
     geo.setAttribute('position', posAttr);
@@ -75,6 +73,9 @@ export default function Scene({ preset, rotationSpeed, viewMode, color, bgColor,
     const solidMat = new THREE.MeshPhongMaterial({
       color, shininess: 60, side: THREE.DoubleSide,
       transparent: opacity < 1, opacity,
+      polygonOffset: true,
+      polygonOffsetFactor: 1,
+      polygonOffsetUnits: 1,
     });
     const wireMat = new THREE.MeshBasicMaterial({
       color, wireframe: true, side: THREE.DoubleSide,
