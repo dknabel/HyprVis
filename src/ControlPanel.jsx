@@ -79,7 +79,7 @@ export default function ControlPanel({
         >
           ‹
         </button>
-        <span className="text-white/75 text-xs font-semibold tracking-widest min-w-[72px] text-center">
+        <span className="text-white/75 text-xs font-semibold tracking-widest w-36 text-center truncate">
           {presets[activeIndex].name.toUpperCase()}
         </span>
         <button
