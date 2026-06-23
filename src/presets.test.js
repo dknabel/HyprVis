@@ -28,11 +28,14 @@ describe('presets', () => {
     }
   });
 
-  it.each(presets)('$name fn produces different output at t=0 vs t=10', ({ fn }) => {
-    // At least one surface should animate — just check no crash at t=10
+  it.each(presets)('$name fn does not crash at t=10', ({ fn }) => {
     const r0 = fn(0.5, 0.5, 0);
     const r1 = fn(0.5, 0.5, 10);
     expect(Number.isFinite(r0.x)).toBe(true);
+    expect(Number.isFinite(r0.y)).toBe(true);
+    expect(Number.isFinite(r0.z)).toBe(true);
     expect(Number.isFinite(r1.x)).toBe(true);
+    expect(Number.isFinite(r1.y)).toBe(true);
+    expect(Number.isFinite(r1.z)).toBe(true);
   });
 });

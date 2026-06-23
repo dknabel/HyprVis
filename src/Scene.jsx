@@ -79,6 +79,7 @@ export default function Scene({ preset, rotationSpeed, wireframe }) {
       preset, rotationSpeed, wireframe,
       solidMat, wireMat, posAttr,
       morph: { from: null, target: null, start: null },
+      t: 0,
     };
 
     let t = 0, rafId;
@@ -88,6 +89,7 @@ export default function Scene({ preset, rotationSpeed, wireframe }) {
       const s = stateRef.current;
       const morph = s.morph;
       t += 0.005;
+      s.t = t;
 
       if (morph.target) {
         const progress = Math.min((now - morph.start) / MORPH_DURATION, 1);
@@ -135,7 +137,7 @@ export default function Scene({ preset, rotationSpeed, wireframe }) {
     const s = stateRef.current;
     if (!s.morph || !s.posAttr) return;
     s.morph.from = new Float32Array(s.posAttr.array);
-    s.morph.target = buildPositions(preset.fn, 0);
+    s.morph.target = buildPositions(preset.fn, s.t ?? 0);
     s.morph.start = performance.now();
     if (s.solidMat) {
       s.solidMat.color.set(preset.color);

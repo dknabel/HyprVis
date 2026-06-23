@@ -39,10 +39,11 @@ export default function ControlPanel({
       {/* Rotation speed */}
       <div className="mb-3">
         <div className="flex justify-between mb-1">
-          <label className="text-white/40 text-xs uppercase tracking-widest">Speed</label>
+          <label htmlFor="speed-slider" className="text-white/40 text-xs uppercase tracking-widest">Speed</label>
           <span className="text-white/40 text-xs">{rotationSpeed.toFixed(1)}×</span>
         </div>
         <input
+          id="speed-slider"
           type="range"
           min="0"
           max="2"
