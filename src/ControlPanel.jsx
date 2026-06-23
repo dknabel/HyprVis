@@ -1,12 +1,21 @@
+import { useState } from 'react';
+
 export default function ControlPanel({
   presets,
   activeIndex,
   rotationSpeed,
   wireframe,
+  color,
+  resolution,
+  animIntensity,
   onPresetChange,
   onSpeedChange,
   onWireframeChange,
+  onColorChange,
+  onResolutionChange,
+  onAnimIntensityChange,
 }) {
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const prev = () => onPresetChange((activeIndex - 1 + presets.length) % presets.length);
   const next = () => onPresetChange((activeIndex + 1) % presets.length);
 
@@ -73,7 +82,7 @@ export default function ControlPanel({
       </div>
 
       {/* Dot indicators */}
-      <div className="flex justify-center gap-1.5 flex-wrap mt-1">
+      <div className="flex justify-center gap-1.5 flex-wrap mt-1 mb-3">
         {presets.map((_, i) => (
           <button
             key={i}
@@ -85,6 +94,74 @@ export default function ControlPanel({
           />
         ))}
       </div>
+
+      {/* Advanced toggle */}
+      <button
+        onClick={() => setShowAdvanced(!showAdvanced)}
+        className="flex items-center justify-between w-full text-white/30 hover:text-white/60 transition-colors text-xs uppercase tracking-widest"
+        aria-expanded={showAdvanced}
+      >
+        <span>Advanced</span>
+        <span
+          className="transition-transform duration-200"
+          style={{ display: 'inline-block', transform: showAdvanced ? 'rotate(180deg)' : 'rotate(0deg)' }}
+        >
+          ▾
+        </span>
+      </button>
+
+      {/* Advanced controls */}
+      {showAdvanced && (
+        <div className="mt-3" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {/* Color */}
+          <div className="flex items-center justify-between">
+            <span className="text-white/40 text-xs uppercase tracking-widest">Color</span>
+            <input
+              type="color"
+              value={color}
+              onChange={(e) => onColorChange(e.target.value)}
+              style={{ width: '32px', height: '20px', padding: 0, border: 'none', background: 'transparent', cursor: 'pointer', borderRadius: '4px' }}
+              aria-label="Shape color"
+            />
+          </div>
+
+          {/* Resolution */}
+          <div>
+            <div className="flex justify-between mb-1">
+              <label htmlFor="resolution-slider" className="text-white/40 text-xs uppercase tracking-widest">Mesh</label>
+              <span className="text-white/40 text-xs">{resolution}</span>
+            </div>
+            <input
+              id="resolution-slider"
+              type="range"
+              min="16"
+              max="192"
+              step="8"
+              value={resolution}
+              onChange={(e) => onResolutionChange(parseInt(e.target.value, 10))}
+              className="w-full accent-white/60 cursor-pointer"
+            />
+          </div>
+
+          {/* Animation intensity */}
+          <div>
+            <div className="flex justify-between mb-1">
+              <label htmlFor="anim-slider" className="text-white/40 text-xs uppercase tracking-widest">Anim</label>
+              <span className="text-white/40 text-xs">{animIntensity.toFixed(1)}×</span>
+            </div>
+            <input
+              id="anim-slider"
+              type="range"
+              min="0"
+              max="3"
+              step="0.1"
+              value={animIntensity}
+              onChange={(e) => onAnimIntensityChange(parseFloat(e.target.value))}
+              className="w-full accent-white/60 cursor-pointer"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
