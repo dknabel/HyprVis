@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { presets } from './presets.js';
 
 describe('presets', () => {
-  it('exports exactly 12 presets', () => {
-    expect(presets).toHaveLength(12);
+  it('exports exactly 30 presets', () => {
+    expect(presets).toHaveLength(30);
   });
 
   it.each(presets)('$name has a name, hex color, and fn', ({ name, color, fn }) => {

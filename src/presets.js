@@ -206,4 +206,281 @@ export const presets = [
       };
     },
   },
+  {
+    name: 'Helicoid',
+    color: '#22d3ee',
+    fn(u, v, t) {
+      const U = (u - 0.5) * 4;
+      const V = v * TWO_PI * 1.5 + t * 0.12;
+      return {
+        x: U * Math.cos(V),
+        y: U * Math.sin(V),
+        z: V * 0.2 - Math.PI * 0.15,
+      };
+    },
+  },
+  {
+    name: 'Catenoid',
+    color: '#34d399',
+    fn(u, v, t) {
+      const U = (u - 0.5) * 4;
+      const V = v * TWO_PI;
+      const s = 0.65 + 0.07 * Math.sin(t * 0.5);
+      return {
+        x: s * Math.cosh(U) * Math.cos(V),
+        y: s * Math.cosh(U) * Math.sin(V),
+        z: U * 0.8,
+      };
+    },
+  },
+  {
+    name: 'Pseudosphere',
+    color: '#fb7185',
+    fn(u, v, t) {
+      const U = u * 4 + 0.01;
+      const V = v * TWO_PI;
+      const s = 0.8 + 0.05 * Math.sin(t * 0.6);
+      return {
+        x: s / Math.cosh(U) * Math.cos(V),
+        y: s / Math.cosh(U) * Math.sin(V),
+        z: s * (U - Math.tanh(U)) - 1.5,
+      };
+    },
+  },
+  {
+    name: 'Saddle',
+    color: '#fbbf24',
+    fn(u, v, t) {
+      const U = (u - 0.5) * 3;
+      const V = (v - 0.5) * 3;
+      const s = 1 + 0.08 * Math.sin(t * 0.4);
+      return {
+        x: U * s,
+        y: (U * U - V * V) * 0.3 * s,
+        z: V * s,
+      };
+    },
+  },
+  {
+    name: 'Monkey Saddle',
+    color: '#c084fc',
+    fn(u, v, t) {
+      const U = (u - 0.5) * 2.8;
+      const V = (v - 0.5) * 2.8;
+      const s = 1 + 0.1 * Math.sin(t * 0.5);
+      return {
+        x: U * s,
+        y: (U * U * U - 3 * U * V * V) * 0.18 * s,
+        z: V * s,
+      };
+    },
+  },
+  {
+    name: 'Twisted Torus',
+    color: '#f472b6',
+    fn(u, v, t) {
+      const U = u * TWO_PI;
+      const V = v * TWO_PI;
+      const R = 1.5, r = 0.38;
+      const angle = V + 2 * U + t * 0.18;
+      return {
+        x: (R + r * Math.cos(angle)) * Math.cos(U),
+        y: r * Math.sin(angle),
+        z: (R + r * Math.cos(angle)) * Math.sin(U),
+      };
+    },
+  },
+  {
+    name: 'Cross-Cap',
+    color: '#38bdf8',
+    fn(u, v, t) {
+      const U = u * Math.PI;
+      const V = v * Math.PI;
+      const s = 1.8 + 0.1 * Math.sin(t * 0.7);
+      return {
+        x: s * Math.sin(U) * Math.sin(2 * V) / 2,
+        y: s * Math.sin(2 * U) * Math.cos(V) ** 2,
+        z: s * Math.cos(2 * U) * Math.cos(V) ** 2,
+      };
+    },
+  },
+  {
+    name: "Boy's Surface",
+    color: '#a3e635',
+    fn(u, v, t) {
+      const U = u * Math.PI;
+      const V = v * Math.PI + t * 0.06;
+      const denom = 2 - Math.SQRT2 * Math.sin(3 * U) * Math.sin(2 * V);
+      if (Math.abs(denom) < 0.01) return { x: 0, y: 0, z: 0 };
+      const s = 0.55;
+      return {
+        x: s * (Math.SQRT2 * Math.cos(U) ** 2 * Math.cos(2 * V) + Math.cos(U) * Math.sin(2 * V)) / denom,
+        y: s * (Math.SQRT2 * Math.cos(U) ** 2 * Math.sin(2 * V) - Math.cos(U) * Math.cos(2 * V)) / denom,
+        z: s * 3 * Math.cos(U) ** 2 / denom - 0.9,
+      };
+    },
+  },
+  {
+    name: 'Rosette',
+    color: '#fb923c',
+    fn(u, v, t) {
+      const anim = t * 0.1;
+      return frenetTube(
+        (s) => {
+          const r = 1.2 + 0.6 * Math.cos(4 * s);
+          return {
+            x: r * Math.cos(s + anim) * 0.5,
+            y: 0.2 * Math.sin(6 * s),
+            z: r * Math.sin(s + anim) * 0.5,
+          };
+        },
+        u, v, 0.14
+      );
+    },
+  },
+  {
+    name: 'Whitney Umbrella',
+    color: '#e879f9',
+    fn(u, v, t) {
+      const U = (u - 0.5) * 3;
+      const V = (v - 0.5) * 3;
+      const s = 1 + 0.07 * Math.sin(t * 0.5);
+      return {
+        x: U * V * 0.5 * s,
+        y: U * 0.8 * s,
+        z: V * V * 0.4 * s - 0.6,
+      };
+    },
+  },
+  {
+    name: 'Kuen',
+    color: '#67e8f9',
+    fn(u, v, t) {
+      const U = (u - 0.5) * 8;
+      const V = 0.05 + v * (Math.PI - 0.1);
+      const drift = t * 0.04;
+      const sinV = Math.sin(V), cosV = Math.cos(V);
+      const denom = 1 + U * U * sinV * sinV;
+      if (denom < 1e-6) return { x: 0, y: 0, z: 0 };
+      const s = 0.4;
+      const UU = U + drift;
+      return {
+        x: s * 2 * (Math.cos(UU) + UU * Math.sin(UU)) * sinV / denom,
+        y: s * 2 * (Math.sin(UU) - UU * Math.cos(UU)) * sinV / denom,
+        z: s * (Math.log(Math.tan(V / 2)) + 2 * cosV / denom),
+      };
+    },
+  },
+  {
+    name: 'Bohemian Dome',
+    color: '#4ade80',
+    fn(u, v, t) {
+      const U = u * TWO_PI;
+      const V = v * TWO_PI;
+      const a = 0.9 + 0.08 * Math.sin(t * 0.5);
+      return {
+        x: a * Math.cos(U),
+        y: 1.1 * Math.cos(V) + a * Math.sin(U),
+        z: 1.3 * Math.sin(V),
+      };
+    },
+  },
+  {
+    name: 'Harmonic 2·1',
+    color: '#818cf8',
+    fn(u, v, t) {
+      const theta = u * Math.PI;
+      const phi = v * TWO_PI;
+      const st = Math.sin(theta), ct = Math.cos(theta);
+      const harmonic = Math.abs(st * ct * Math.cos(phi));
+      const r = (1.0 + 1.8 * harmonic) * (1 + 0.07 * Math.sin(t * 1.1));
+      return {
+        x: r * st * Math.cos(phi),
+        y: r * ct,
+        z: r * st * Math.sin(phi),
+      };
+    },
+  },
+  {
+    name: 'Harmonic 3·2',
+    color: '#f0abfc',
+    fn(u, v, t) {
+      const theta = u * Math.PI;
+      const phi = v * TWO_PI;
+      const st = Math.sin(theta), ct = Math.cos(theta);
+      const harmonic = Math.abs(st * st * ct * Math.cos(2 * phi));
+      const r = (0.7 + 2.5 * harmonic) * (1 + 0.06 * Math.sin(t * 0.9));
+      return {
+        x: r * st * Math.cos(phi),
+        y: r * ct,
+        z: r * st * Math.sin(phi),
+      };
+    },
+  },
+  {
+    name: 'Harmonic 4·4',
+    color: '#fcd34d',
+    fn(u, v, t) {
+      const theta = u * Math.PI;
+      const phi = v * TWO_PI;
+      const st = Math.sin(theta);
+      const harmonic = Math.abs(Math.pow(st, 4) * Math.cos(4 * phi));
+      const r = (0.6 + 3.0 * harmonic) * (1 + 0.05 * Math.sin(t * 1.3));
+      return {
+        x: r * st * Math.cos(phi),
+        y: r * Math.cos(theta),
+        z: r * st * Math.sin(phi),
+      };
+    },
+  },
+  {
+    name: 'Torus Knot',
+    color: '#2dd4bf',
+    fn(u, v, t) {
+      const p = 3, q = 7;
+      const anim = t * 0.06;
+      return frenetTube(
+        (s) => {
+          const r = Math.cos(q * s) + 2.5;
+          return {
+            x: r * Math.cos(p * s + anim) * 0.38,
+            y: r * Math.sin(p * s + anim) * 0.38,
+            z: -Math.sin(q * s) * 0.38,
+          };
+        },
+        u, v, 0.08
+      );
+    },
+  },
+  {
+    name: 'Spring',
+    color: '#a78bfa',
+    fn(u, v, t) {
+      const coils = 5;
+      const anim = t * 0.08;
+      return frenetTube(
+        (s) => ({
+          x: Math.cos(s * coils + anim) * 1.1,
+          y: s / TWO_PI * 3.0 - 1.5,
+          z: Math.sin(s * coils + anim) * 1.1,
+        }),
+        u, v, 0.13
+      );
+    },
+  },
+  {
+    name: 'Bumpy Sphere',
+    color: '#d946ef',
+    fn(u, v, t) {
+      const theta = u * Math.PI;
+      const phi = v * TWO_PI;
+      const st = Math.sin(theta);
+      const r = 1.5 + 0.35 * Math.sin(5 * theta + t * 0.3) * Math.sin(5 * phi);
+      return {
+        x: r * st * Math.cos(phi),
+        y: r * Math.cos(theta),
+        z: r * st * Math.sin(phi),
+      };
+    },
+  },
 ];
